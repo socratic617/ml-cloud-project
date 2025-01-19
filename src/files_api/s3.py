@@ -1,5 +1,4 @@
 import boto3
-from mypy_boto3_s3 import S3Client
 
 try:
     from mypy_boto3_s3 import S3Client
@@ -23,4 +22,4 @@ response: "PutObjectOutputTypeDef" = s3_client.put_object(
     ContentType="text/plain",
 )
 
-metadata : "ResponseMetadataTypeDef" = response["ResponseMetadata"]
+# metadata : "ResponseMetadataTypeDef" = response["ResponseMetadata"]
