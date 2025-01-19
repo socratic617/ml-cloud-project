@@ -9,5 +9,5 @@ s3_client.put_object(
     Bucket=BUCKET_NAME,
     Key="folder/hello.txt",
     Body="Hello, World!",
-    ContentType="text/plain"
+    ContentType="text/plain",
 )
