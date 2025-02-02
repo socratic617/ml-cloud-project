@@ -2,6 +2,7 @@ import os
 import boto3
 from pytest import fixture
 from tests.consts import TEST_BUCKET_NAME
+from moto import mock_aws
 
 def point_away_from_aws(): 
     os.environ["AWS_ACCESS_KEY_ID"] = "testing"
@@ -11,8 +12,8 @@ def point_away_from_aws():
     os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
 
 @fixture
-def mocked_s3():
-    with mocked_s3():
+def mocked_aws():
+    with mocked_aws():
         point_away_from_aws()
 
         # Create an s3 bucket
