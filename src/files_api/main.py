@@ -56,7 +56,7 @@ class FileMetadata(BaseModel):
 
 
 @APP.put("/files/{file_path:path}")
-async def upload_file(file_path: str, file: UploadFile, response: Response) -> ...:
+async def upload_file(file_path: str, file: UploadFile, response: Response):
     """Upload a file."""
     ...
 
@@ -64,10 +64,8 @@ async def upload_file(file_path: str, file: UploadFile, response: Response) -> .
 @APP.get("/files")
 async def list_files(
     query_params=...,
-) -> ...:
+):
     """List files with pagination."""
-    ...
-
 
 @APP.head("/files/{file_path:path}")
 async def get_file_metadata(file_path: str, response: Response) -> Response:
@@ -81,7 +79,7 @@ async def get_file_metadata(file_path: str, response: Response) -> Response:
 @APP.get("/files/{file_path:path}")
 async def get_file(
     file_path: str,
-) -> ...:
+):
     """Retrieve a file."""
     ...
 
