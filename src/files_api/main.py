@@ -58,7 +58,14 @@ class FileMetadata(BaseModel):
 @APP.put("/files/{file_path:path}")
 async def upload_file(file_path: str, file: UploadFile, response: Response):
     """Upload a file."""
-    ...
+
+    file_contents: bytes = await file.read()
+    upload_s3_object(
+        bucket_name=S3_BUCKET_NAME,
+        object_key=file_path,
+        file_content=file_contents,
+        content_type=file.content_type,
+    )
 
 
 @APP.get("/files")
