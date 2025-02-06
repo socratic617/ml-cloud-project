@@ -28,8 +28,8 @@ from pydantic import BaseModel
 
 S3_BUCKET_NAME = "some-bucket"
 
-#Instance of FastAPI
-#Labeled "APP" in all caps because it is a constant, defined
+# Instance of FastAPI
+# Labeled "APP" in all caps because it is a constant, defined
 #  at the global scope. Using uppercase helps prevent state-related
 # bugs and signals to others that it should be treated as a constant.
 
