@@ -10,6 +10,9 @@ build:
 run:
 	bash run.sh run
 
+run-mock:
+	bash run.sh run
+	
 clean:
 	bash run.sh clean
 
