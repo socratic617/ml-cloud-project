@@ -14,7 +14,11 @@ except ImportError:
 DEFAULT_MAX_KEYS = 1_000
 
 
-def object_exists_in_s3(bucket_name: str, object_key: str, s3_client: Optional["S3Client"] = None) -> bool:
+def object_exists_in_s3(
+        bucket_name: str,
+        object_key: str,
+        s3_client: Optional["S3Client"] = None
+    ) -> bool:
     """
     Check if an object exists in the S3 bucket using head_object.
 
