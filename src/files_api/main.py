@@ -1,3 +1,6 @@
+"""
+    TODO
+"""
 from datetime import datetime
 from typing import (
     List,
@@ -22,7 +25,6 @@ from files_api.s3.read_objects import (
     object_exists_in_s3,
 )
 from files_api.s3.write_objects import upload_s3_object
-from pydantic import BaseModel
 
 #####################
 # --- Constants --- #
@@ -41,55 +43,50 @@ APP = FastAPI()
 # --- Request/response schemas --- #
 ####################################
 
+#create/read (CRud)
+class PutFileResponse(BaseModel):
+    """
+        TODO
+    """
+    file_path: str
+    message: str
 
 # read (cRud)
 class FileMetadata(BaseModel):
+    """
+        TODO
+    """
     file_path: str
     last_modified: datetime
     size_bytes: int
 
-# more pydantic models
-class PutFileResponse(BaseModel):
-    '''
-        Response for file path
-    '''
-    file_path: str
+class GetFilesResponse(BaseModel):
+    """
+        TODO
+    """
+    files: List[FileMetadata]
+    next_page_token: Optional[str]
+
+class GetFilesQueryParams(BaseModel):
+    """
+        TODO
+    """
+    page_size: int = 10
+    directory: Optional[str] = ""
+    page_token: Optional[str] = None
+
+# delete (cruD)
+class DeleteFileResponse(BaseModel):
+    """
+        TODO
+    """
     message: str
+
 
 ##################
 # --- Routes --- #
 ##################
 
-
-# read (cRud)
-class FileMetadata(BaseModel):
-    file_path: str
-    last_modified: datetime
-    size_bytes: int
-
-
-# read (cRud)
-class GetFilesResponse(BaseModel):
-    files: List[FileMetadata]
-    next_page_token: Optional[str]
-
-
-# read (cRud)
-class GetFilesQueryParams(BaseModel):
-    page_size: int = 10
-    directory: Optional[str] = ""
-    page_token: Optional[str] = None
-
-
-# delete (cruD)
-class DeleteFileResponse(BaseModel):
-    message: str
-
-
-# create/update (CrUd)
-class PutFileResponse(BaseModel):
-    file_path: str
-    message: str
 
 @APP.put("/files/{file_path:path}")
 async def upload_file(file_path: str, file: UploadFile, response: Response) -> PutFileResponse:
