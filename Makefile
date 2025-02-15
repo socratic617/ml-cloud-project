@@ -11,8 +11,8 @@ run:
 	bash run.sh run
 
 run-mock:
-	bash run.sh run
-	
+	bash run.sh run-mock
+
 clean:
 	bash run.sh clean
 
