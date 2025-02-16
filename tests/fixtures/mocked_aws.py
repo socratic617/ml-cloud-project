@@ -25,7 +25,7 @@ def point_away_from_aws() -> None:
 @fixture(scope="function")
 def mocked_aws() -> Generator[None,None,None]:
     """
-    Set up a mocked AWS enviornemne t for testing and clean up after the test
+    Set up a mocked AWS enviornment for testing and clean up after the test
     """
     with mock_aws():
         # Set the enviornment variables to point away from AWS
