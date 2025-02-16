@@ -1,14 +1,15 @@
 # import botocore
 from typing import Generator
+import botocore
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 from src.files_api.main import APP
 
 # Constants for testing
-test_file_path = "test.txt"
-test_file_content = b"Hello, world!"
-test_file_content_type = "text/plain"
+TEST_FILE_PATH = "test.txt"
+TEST_FILE_CONTENT = b"Hello, world!"
+TEST_FILE_CONTENT_TYPE = "text/plain"
 
 
 # Fixture for FastAPI test client
@@ -24,9 +25,10 @@ def client(mocked_aws: TestClient) -> Generator[TestClient]:
 
 def test__upload_file__happy_path(client: TestClient):
     # create a file
+
     test_file_path = "some/nested/file.txt"
-    test_file_path = b"some content"
-    test_file_path = "text/plain"
+    test_file_content = b"some content"
+    test_file_content_type = "text/plain"
 
     response = client.put(
         f"/files/{test_file_path}",
@@ -114,6 +116,4 @@ def test_delete_file(client: TestClient):
     #
     # Later we will fix this by doing better error handling within the API itself.
     with pytest.raises(botocore.exceptions.ClientError):
-        response = client.get(f"/files/{test_file_path}")
-
-
+        client.get(f"/files/{test_file_path}")
