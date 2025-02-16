@@ -2,6 +2,8 @@
 
 from typing import Optional
 
+import boto3
+
 try:
     from mypy_boto3_s3 import S3Client
     from mypy_boto3_s3.type_defs import (
@@ -28,7 +30,15 @@ def object_exists_in_s3(
 
     :return: True if the object exists, False otherwise.
     """
-    return
+    s3_client = s3_client or boto3.client("s3")
+    try:
+        s3_client.head_object(Bucket=bucket_name, Key=object_key)
+        return True
+    except s3_client.exceptions.ClientError as err:
+        error_code = err.response["Error"]["Code"]
+        if error_code == "404":
+            return False
+        raise
 
 
 def fetch_s3_object(
