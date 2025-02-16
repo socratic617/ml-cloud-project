@@ -9,6 +9,7 @@ try:
     from mypy_boto3_s3.type_defs import (
         GetObjectOutputTypeDef,
         ObjectTypeDef,
+        ListObjectsV2OutputTypeDef,
     )
 except ImportError:
     ...
@@ -55,7 +56,9 @@ def fetch_s3_object(
 
     :return: Metadata of the object.
     """
-    return
+    s3_client = s3_client or boto3.client("s3")
+    response = s3_client.get_object(Bucket= bucket_name, Key= object_key)
+    return response
 
 
 def fetch_s3_objects_using_page_token(
@@ -76,13 +79,22 @@ def fetch_s3_objects_using_page_token(
         1. Possibly empty list of objects in the current page.
         2. Next continuation token if there are more pages, otherwise None.
     """
-    return
+    s3_client = s3_client or boto3.client("s3")
+    response: "ListObjectsV2OutputTypeDef" = s3_client.list_objects_v2(
+        Bucket=bucket_name,
+        ContinuationToken=continuation_token,
+        MaxKeys=max_keys or DEFAULT_MAX_KEYS,
+    )
+    files: list["ObjectTypeDef"] = response.get("Contents", [])
+    next_continuation_token: str | None = response.get("NextContinuationToken")
+
+    return files, next_continuation_token
 
 
 def fetch_s3_objects_metadata(
     bucket_name: str,
     prefix: Optional[str] = None,
-    max_keys: Optional[int] = DEFAULT_MAX_KEYS,
+    max_keys: int = DEFAULT_MAX_KEYS,
     s3_client: Optional["S3Client"] = None,
 ) -> tuple[list["ObjectTypeDef"], Optional[str]]:
     """
@@ -97,4 +109,9 @@ def fetch_s3_objects_metadata(
         1. Possibly empty list of objects in the current page.
         2. Next continuation token if there are more pages, otherwise None.
     """
-    return
+    s3_client = s3_client or boto3.client("s3")
+    response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=prefix or "", MaxKeys=max_keys)
+    files: list["ObjectTypeDef"] = response.get("Contents", [])
+    next_page_token: str | None = response.get("NextContinuationToken")
+
+    return files, next_page_token
