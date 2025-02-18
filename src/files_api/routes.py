@@ -1,5 +1,20 @@
 """
-    TODO
+    ROUTES:
+
+    This module defines the routes for interacting with files stored in an S3 bucket.
+
+    Routes include:
+    - Uploading files (`PUT /files/{file_path:path}`)
+    - Listing files with pagination (`GET /files`)
+    - Retrieving file metadata (`HEAD /files/{file_path:path}`)
+    - Downloading files (`GET /files/{file_path:path}`)
+    - Deleting files (`DELETE /files/{file_path:path}`)
+
+    Each route interacts with the S3 bucket specified in the application state
+    (`app.state.s3_bucket_name`), using helper functions from the `files_api.s3`
+    module for file management.
+
+    All responses are structured based on defined Pydantic models for consistency and ease of use.
 """
 from fastapi import (
     APIRouter,
