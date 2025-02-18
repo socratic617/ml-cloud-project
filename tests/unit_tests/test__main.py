@@ -1,15 +1,18 @@
+"""
+Importing functions/libaries/dependency
+"""
 from typing import Generator
 import botocore
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
-from src.files_api.main import APP
+from src.files_api.main import create_app
+from tests.consts import TEST_BUCKET_NAME
 
 # Constants for testing
 TEST_FILE_PATH = "test.txt"
 TEST_FILE_CONTENT = b"Hello, world!"
 TEST_FILE_CONTENT_TYPE = "text/plain"
-
 
 # Fixture for FastAPI test client
 @pytest.fixture
@@ -18,13 +21,16 @@ def client(mocked_aws: TestClient) -> Generator[TestClient]:
     """
         Create a generator with a TestClient object
     """
-    with TestClient(APP) as client:
+    app = create_app(s3_bucket_name=TEST_BUCKET_NAME)
+    with TestClient(app) as client:
         yield client
 
 
-def test__upload_file__happy_path(client: TestClient):
+def test__upload_file__happy_path(client: TestClient) -> None:
+    """
+    TESTING HAPPY PATH TESTING
+    """
     # create a file
-
     test_file_path = "some/nested/file.txt"
     test_file_content = b"some content"
     test_file_content_type = "text/plain"
@@ -52,7 +58,6 @@ def test__upload_file__happy_path(client: TestClient):
         "file_path": test_file_path,
         "message": f"Existing file updated at path: /{test_file_path}",
     }
-
 
 def test_list_files_with_pagination(client: TestClient):
     # Upload files
