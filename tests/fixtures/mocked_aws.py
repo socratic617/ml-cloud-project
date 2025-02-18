@@ -20,7 +20,7 @@ def point_away_from_aws() -> None:
     os.environ["AWS_SECURITY_TOKEN"] = "testing"
     os.environ["AWS_SESSION_TOKEN"] = "testing"
     os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
-    os.environ["AWS_ENDPOINT_URL"] = "http://localhost:5001"
+    os.environ["AWS_ENDPOINT_URL"] = "http://localhost:5002"
 
 @fixture(scope="function")
 def mocked_aws() -> Generator[None,None,None]:
