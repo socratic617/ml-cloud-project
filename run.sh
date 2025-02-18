@@ -22,17 +22,20 @@ function install {
 
 # allows uvicorn to respond with requests with the latest changes to our code
 function run {
-   AWS_PROFILE=cloud-course uvicorn files_api.main:APP --reload
+   AWS_PROFILE=cloud-course \
+   S3_BUCKET_NAME  ="some-bucket" \
+        uvicorn 'files_api.main:create_app' --reload
 }
 
 
 function is_moto_server_running {
-    # Try to curl the local moto server
-    if curl --silent --max-time 2 http://localhost:5001 > /dev/null; then
-        echo "Moto server is running on localhost:5001"
+    # Try to check to see a moto server is running 3x's if not go create a moto server
+
+    if curl --silent --max-time 5 --write-out "%{http_code}" http://localhost:5002 > /dev/null; then
+        echo "Moto server is running on localhost:5002"
         return 0
     else
-        echo "Moto server is NOT running on localhost:5001"
+        echo "Moto server is NOT running on localhost:5002"
         return 1
     fi
 }
@@ -42,8 +45,8 @@ function is_moto_server_running {
 function run-mock {
     set +e
 
-    # Start moto.server in the background on localhost:5001
-    # python -m moto.server -p 5001 &
+    # Start moto.server in the background on localhost:5002
+    # python -m moto.server -p 5002 &
     # MOTO_PID=$!
 
     echo "Checking if Moto server is already running else we will start a new moto server"
@@ -54,24 +57,23 @@ function run-mock {
         echo "Proceeding with mock server setup."
     else
         echo "Starting moto.server..."
-        python -m moto.server -p 5001 &
+        python -m moto.server -p 5002 &
         MOTO_PID=$!
         sleep 5
     fi
 
     # point the AWS CLI and boto3 to the mocked AWS server using mocked credentials
-    export AWS_ENDPOINT_URL="http://localhost:5001"
+    export AWS_ENDPOINT_URL="http://localhost:5002"
     # export AWS_SECRET_ACCESS_KEY="mock"
     # export AWS_ACCESS_KEY_ID="mock"
     # export AWS_PROFILE="mock"
     export AWS_DEFAULT_REGION="us-east-1"
+    export S3_BUCKET_NAME="some-bucket"
 
     if aws s3 ls | grep -q "some-bucket"; then
         echo "Bucket 'some-bucket' already exists!"
     else
-        aws s3 mb s3://some-bucket || echo "Error creating bucket"
-        aws s3 mb s3://some-bucket-test || echo "Error creating bucket"
-        aws s3 mb s3://some-bucket-test123 || echo "Error creating bucket"
+        aws s3 mb "s3://$S3_BUCKET_NAME" || echo "Error creating bucket"
     fi
 
     # Check if the bucket was created by listing the S3 buckets
@@ -84,12 +86,17 @@ function run-mock {
     # echo aws s3 ls 
     echo "Display all existing buckets in the moto.server"
     aws s3 ls
+
     # Trap EXIT signal to kill the moto.server process when uvicorn stops
     trap 'kill $MOTO_PID' EXIT
+ 
+
+    # # Kill any previous uvicorn process running on port 8000
+    pkill -f 'uvicorn src.files_api.main:create_app'
 
     # Set AWS endpoint URL and start FastAPI app with uvicorn in the foreground
-    uvicorn src.files_api.main:APP --reload
-
+    uvicorn src.files_api.main:create_app --reload
+ 
     # Wait for the moto.server process to finish (this is optional if you want to keep it running)
     wait $MOTO_PID
 }
