@@ -41,10 +41,6 @@ from files_api.schemas import (
     PutFileResponse,
 )
 
-##################
-# --- Routes --- #
-##################
-
 ROUTER = APIRouter()
 
 # ROUTER WORKS like FastAPI Routes
@@ -55,10 +51,12 @@ async def upload_file(request: Request,
                       response: Response
                       ) -> PutFileResponse:
     """
-    TO DO
+    Uploads a file to the specified S3 bucket. If the file already
+    exists, it is updated; otherwise, a new file is created.
+
+    Returns a response indicating the status of the upload.
     """
 
-    # Upload a file.
     s3_bucket_name = request.app.state.s3_bucket_name
     file_contents: bytes = await file.read()
 
