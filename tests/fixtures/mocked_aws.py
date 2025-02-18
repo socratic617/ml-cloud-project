@@ -5,10 +5,10 @@ import os
 from typing import Generator
 import boto3
 from pytest import fixture
-
-# from tests.consts import TEST_BUCKET_NAME
 from moto import mock_aws
-from files_api.main import S3_BUCKET_NAME as TEST_BUCKET_NAME
+from tests.consts import TEST_BUCKET_NAME
+
+# from files_api.main import S3_BUCKET_NAME as TEST_BUCKET_NAME
 
 #Set the enviornment variables to point away from AWS
 def point_away_from_aws() -> None:
@@ -33,18 +33,19 @@ def mocked_aws() -> Generator[None,None,None]:
 
         # Create an s3 bucket
         s3_client = boto3.client("s3")
-        response = s3_client.list_buckets()
-        print("BEFORE Available Buckets:", response["Buckets"])
+        s3_client.create_bucket(Bucket=TEST_BUCKET_NAME)
+        bucket_list_response = s3_client.list_buckets()
+        print("BEFORE Available Buckets:", bucket_list_response["Buckets"])
         s3_client.create_bucket(
             Bucket=TEST_BUCKET_NAME
         )
-        response = s3_client.list_buckets()
-        print("AFTER Available Buckets:", response["Buckets"])
+        bucket_list_response = s3_client.list_buckets()
+        print("AFTER Available Buckets:", bucket_list_response["Buckets"])
         yield
 
         # Delete all objects in the bucket and the bucket itself
-        response =  s3_client.list_objects_v2(Bucket=TEST_BUCKET_NAME)
-        for obj in response.get("Contents", []):
+        objects_response =  s3_client.list_objects_v2(Bucket=TEST_BUCKET_NAME)
+        for obj in objects_response.get("Contents", []):
             s3_client.delete_object(Bucket=TEST_BUCKET_NAME, Key=obj["Key"])
 
         s3_client.delete_bucket(Bucket=TEST_BUCKET_NAME)
