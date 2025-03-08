@@ -1,5 +1,8 @@
 """
-    TODO
+Main entry point for the FastAPI application.
+
+This module initializes and configures the FastAPI app,
+including setting up routes and managing the S3 bucket name.
 """
 import os
 
