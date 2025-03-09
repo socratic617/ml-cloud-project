@@ -10,6 +10,7 @@ from fastapi import FastAPI
 
 from files_api.routes import ROUTER
 
+
 ##################
 # --- Routes --- #
 ##################
