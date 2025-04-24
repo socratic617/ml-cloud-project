@@ -11,7 +11,7 @@
     - Deleting files (`DELETE /files/{file_path:path}`)
 
     Each route interacts with the S3 bucket specified in the application state
-    (`app.state.s3_bucket_name`), using helper functions from the `files_api.s3`
+    (`app.state.s3_bucket_name`) -> [now currently: `app.state.settings.s3_bucket_name`], using helper functions from the `files_api.s3`
     module for file management.
 
     All responses are structured based on defined Pydantic models for consistency and ease of use.
@@ -40,6 +40,7 @@ from files_api.schemas import (
     GetFilesResponse,
     PutFileResponse,
 )
+from files_api.settings import Settings
 
 ROUTER = APIRouter()
 
@@ -56,11 +57,11 @@ async def upload_file(request: Request,
 
     Returns a response indicating the status of the upload.
     """
+    settings: Settings = request.app.state.settings
 
-    s3_bucket_name = request.app.state.s3_bucket_name
     file_contents: bytes = await file.read()
 
-    object_already_exists_at_path = object_exists_in_s3(s3_bucket_name, object_key=file_path)
+    object_already_exists_at_path = object_exists_in_s3(settings.s3_bucket_name, object_key=file_path)
     if object_already_exists_at_path:
         message = f"Existing file updated at path: /{file_path}"
         response.status_code = status.HTTP_200_OK
@@ -69,7 +70,7 @@ async def upload_file(request: Request,
         response.status_code = status.HTTP_201_CREATED
 
     upload_s3_object(
-        bucket_name=s3_bucket_name,
+        bucket_name=settings.s3_bucket_name,
         object_key=file_path,
         file_content=file_contents,
         content_type=file.content_type,
@@ -88,7 +89,7 @@ async def list_files(
     """
     List files with pagination.
     """
-    s3_bucket_name = request.app.state.s3_bucket_name
+    s3_bucket_name = request.app.state.settings.s3_bucket_name
 
     if query_params.page_token:
         files, next_page_token = fetch_s3_objects_using_page_token(
@@ -123,7 +124,7 @@ async def get_file_metadata(request: Request,
 
     Note: by convention, HEAD requests MUST NOT return a body in the response.
     """
-    s3_bucket_name = request.app.state.s3_bucket_name
+    s3_bucket_name = request.app.state.settings.s3_bucket_name
     get_object_response = fetch_s3_object(s3_bucket_name, object_key=file_path)
     response.headers["Content-Type"] = get_object_response["ContentType"]
     response.headers["Content-Length"] = str(get_object_response["ContentLength"])
@@ -141,7 +142,7 @@ async def get_file(
     Retrieve a file.
     """
 
-    s3_bucket_name = request.app.state.s3_bucket_name
+    s3_bucket_name = request.app.state.settings.s3_bucket_name
 
     get_object_response = fetch_s3_object(s3_bucket_name, object_key=file_path)
     return StreamingResponse(
@@ -162,7 +163,7 @@ async def delete_file(
     """
 
     print("app state: ", request.app.state)
-    s3_bucket_name = request.app.state.s3_bucket_name
+    s3_bucket_name = request.app.state.settings.s3_bucket_name
     delete_s3_object(s3_bucket_name, object_key=file_path)
     response.status_code = status.HTTP_204_NO_CONTENT
     return response
