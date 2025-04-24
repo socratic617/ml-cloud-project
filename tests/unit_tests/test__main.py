@@ -8,6 +8,7 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from src.files_api.main import create_app
 from tests.consts import TEST_BUCKET_NAME
+from src.files_api.settings import Settings
 
 # Constants for testing
 TEST_FILE_PATH = "test.txt"
@@ -21,7 +22,9 @@ def client(mocked_aws: TestClient) -> Generator[TestClient]:
     """
         Create a generator with a TestClient object
     """
-    app = create_app(s3_bucket_name=TEST_BUCKET_NAME)
+    settings = Settings(s3_bucket_name=TEST_BUCKET_NAME)
+
+    app = create_app(settings=settings)
     with TestClient(app) as client:
         yield client
 
