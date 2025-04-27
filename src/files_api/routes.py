@@ -89,11 +89,11 @@ async def list_files(
     """
     List files with pagination.
     """
-    s3_bucket_name = request.app.state.settings.s3_bucket_name
+    settings: Settings = request.app.state.settings
 
     if query_params.page_token:
         files, next_page_token = fetch_s3_objects_using_page_token(
-            bucket_name=s3_bucket_name,
+            bucket_name=settings.s3_bucket_name,
             continuation_token=query_params.page_token,
             max_keys=query_params.page_size,
         )
@@ -124,8 +124,8 @@ async def get_file_metadata(request: Request,
 
     Note: by convention, HEAD requests MUST NOT return a body in the response.
     """
-    s3_bucket_name = request.app.state.settings.s3_bucket_name
-    get_object_response = fetch_s3_object(s3_bucket_name, object_key=file_path)
+    settings: Settings = request.app.state.settings
+    get_object_response = fetch_s3_object(settings.s3_bucket_name, object_key=file_path)
     response.headers["Content-Type"] = get_object_response["ContentType"]
     response.headers["Content-Length"] = str(get_object_response["ContentLength"])
     response.headers["Last-Modified"] = get_object_response["LastModified"].strftime("%a, %d %b %Y %H:%M:%S GMT")
@@ -141,10 +141,15 @@ async def get_file(
     """
     Retrieve a file.
     """
+    #Bussiness Logic:
+        # Error Case: Object does not exist in  bucket
+        # Error Case: Invalid inputs
 
-    s3_bucket_name = request.app.state.settings.s3_bucket_name
-
-    get_object_response = fetch_s3_object(s3_bucket_name, object_key=file_path)
+    # Internal Server Error:
+        # Error Case: Not authenticated/authorized to access object to make calls to AWS
+        # Error Case: Access to AWS but non-existent bucket
+    settings: Settings = request.app.state.settings
+    get_object_response = fetch_s3_object(settings.s3_bucket_name, object_key=file_path)
     return StreamingResponse(
         content=get_object_response["Body"],
         media_type=get_object_response["ContentType"],
@@ -163,7 +168,7 @@ async def delete_file(
     """
 
     print("app state: ", request.app.state)
-    s3_bucket_name = request.app.state.settings.s3_bucket_name
-    delete_s3_object(s3_bucket_name, object_key=file_path)
+    settings: Settings = request.app.state.settings
+    delete_s3_object(settings.s3_bucket_name, object_key=file_path)
     response.status_code = status.HTTP_204_NO_CONTENT
     return response
