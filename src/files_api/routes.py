@@ -19,6 +19,7 @@
 from fastapi import (
     APIRouter,
     Depends,
+    HTTPException,
     Request,
     Response,
     UploadFile,
@@ -99,7 +100,7 @@ async def list_files(
         )
     else:
         files, next_page_token = fetch_s3_objects_metadata(
-            bucket_name=s3_bucket_name,
+            bucket_name=settings.s3_bucket_name,
             prefix=query_params.directory,
             max_keys=query_params.page_size,
         )
@@ -141,14 +142,20 @@ async def get_file(
     """
     Retrieve a file.
     """
-    #Bussiness Logic:
+    # 1 - Bussiness Logic:
         # Error Case: Object does not exist in  bucket
         # Error Case: Invalid inputs
 
-    # Internal Server Error:
+    # 2 - Internal Server Error:
         # Error Case: Not authenticated/authorized to access object to make calls to AWS
         # Error Case: Access to AWS but non-existent bucket
+
     settings: Settings = request.app.state.settings
+
+    object_exists = object_exists_in_s3(bucket_name=settings.s3_bucket_name, object_key=file_path)
+    if not object_exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+
     get_object_response = fetch_s3_object(settings.s3_bucket_name, object_key=file_path)
     return StreamingResponse(
         content=get_object_response["Body"],
