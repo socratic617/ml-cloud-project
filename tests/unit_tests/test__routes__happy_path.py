@@ -109,5 +109,5 @@ def test_delete_file(client: TestClient):
     # exception when trying to fetch the file. This block succeeds only if a botocore exception is thrown.
     #
     # Later we will fix this by doing better error handling within the API itself.
-    with pytest.raises(botocore.exceptions.ClientError):
-        response = client.get(f"/files/{TEST_FILE_PATH}")
+    response = client.get(f"/files/{TEST_FILE_PATH}")
+    assert response.status_code == 404
