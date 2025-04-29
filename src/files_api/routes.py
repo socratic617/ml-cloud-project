@@ -36,12 +36,14 @@ from files_api.s3.read_objects import (
 )
 from files_api.s3.write_objects import upload_s3_object
 from files_api.schemas import (
+    DeleteFileResponse,
     FileMetadata,
     GetFilesQueryParams,
     GetFilesResponse,
     PutFileResponse,
 )
 from files_api.settings import Settings
+from botocore.exceptions import ClientError
 
 ROUTER = APIRouter()
 
@@ -125,13 +127,19 @@ async def get_file_metadata(request: Request,
 
     Note: by convention, HEAD requests MUST NOT return a body in the response.
     """
-    settings: Settings = request.app.state.settings
-    get_object_response = fetch_s3_object(settings.s3_bucket_name, object_key=file_path)
-    response.headers["Content-Type"] = get_object_response["ContentType"]
-    response.headers["Content-Length"] = str(get_object_response["ContentLength"])
-    response.headers["Last-Modified"] = get_object_response["LastModified"].strftime("%a, %d %b %Y %H:%M:%S GMT")
-    response.status_code = status.HTTP_200_OK
-    return response
+    try:
+        settings: Settings = request.app.state.settings
+        get_object_response = fetch_s3_object(settings.s3_bucket_name, object_key=file_path)
+        response.headers["Content-Type"] = get_object_response["ContentType"]
+        response.headers["Content-Length"] = str(get_object_response["ContentLength"])
+        response.headers["Last-Modified"] = get_object_response["LastModified"].strftime("%a, %d %b %Y %H:%M:%S GMT")
+        response.status_code = status.HTTP_200_OK
+        return response
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "NoSuchKey":
+            raise HTTPException(status_code=404, detail="File not found")
+        else:
+            raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
 @ROUTER.get("/files/{file_path:path}")
@@ -174,8 +182,15 @@ async def delete_file(
     NOTE: DELETE requests MUST NOT return a body in the response.
     """
 
-    print("app state: ", request.app.state)
     settings: Settings = request.app.state.settings
-    delete_s3_object(settings.s3_bucket_name, object_key=file_path)
-    response.status_code = status.HTTP_204_NO_CONTENT
-    return response
+    try:
+        # Check if file exists before trying to delete
+        if not object_exists_in_s3(bucket_name=settings.s3_bucket_name, object_key=file_path):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+
+        # Proceed with file deletion
+        delete_s3_object(settings.s3_bucket_name, object_key=file_path)
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    except ClientError as e:
+        # Handle any unexpected AWS errors (e.g., permissions, network errors, etc.)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error during file deletion")
