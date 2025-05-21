@@ -150,10 +150,6 @@ async def get_file(
     """
     Retrieve a file.
     """
-    # 1 - Bussiness Logic:
-        # Error Case: Object does not exist in  bucket
-        # Error Case: Invalid inputs
-
     # 2 - Internal Server Error:
         # Error Case: Not authenticated/authorized to access object to make calls to AWS
         # Error Case: Access to AWS but non-existent bucket
